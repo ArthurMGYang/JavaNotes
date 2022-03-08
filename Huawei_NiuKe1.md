@@ -1971,6 +1971,193 @@ public class Main{
 }
 ```
 
+## 43.迷宫问题！
+
+这个题，属于是最简单的dfs之一，但是我却因为久了没有练习，中间频繁出问题
+
+不过做过一次之后，或许会有更深的印象了吧
+
+````java
+import java.io.*;
+import java.util.*;
+
+public class Main{
+    public static void main(String[] args) throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String line = null;
+        while((line = br.readLine()) != null){
+            String[] strs = line.split(" ");
+            int m = Integer.parseInt(strs[0]);
+            int n = Integer.parseInt(strs[1]);
+            int[][] maze = new int[m][n];
+            for(int i = 0;i < m;++i){
+                strs = br.readLine().split(" ");
+                for(int j = 0;j < n;++j){
+                    maze[i][j] = Integer.parseInt(strs[j]);
+                }
+            }
+            Deque<int[]> deque = new LinkedList<>();
+            dfs(deque,maze,0,0);
+            StringBuilder sb = new StringBuilder();
+            while(!deque.isEmpty()){
+                int[] current = deque.pollFirst();
+                if(deque.size() > 0){
+                    sb.append("(" + current[0] + "," + current[1] + ")" + "\n");
+                }else{
+                    sb.append("(" + current[0] + "," + current[1] + ")");
+                }
+            }
+            System.out.println(sb.toString());
+        }
+    }
+    
+    private static boolean dfs(Deque<int[]> deque,int[][] maze,int i,int j){
+        deque.addLast(new int[]{i,j});
+        maze[i][j] = 1;
+        if(i == maze.length - 1 && j == maze[0].length - 1){
+            return true;
+        }
+        if(j+1 < maze[0].length && maze[i][j+1] == 0){
+            if(dfs(deque,maze,i,j+1)){
+                return true;
+            }
+        }
+        if(j-1 >= 0 && maze[i][j-1] == 0){
+            if(dfs(deque,maze,i,j-1)){
+                return true;
+            }
+        }
+        if(i+1 < maze.length && maze[i+1][j] == 0){
+            if(dfs(deque,maze,i+1,j)){
+                return true;
+            }
+        }
+        if(i-1>=0 && maze[i-1][j] == 0){
+            if(dfs(deque,maze,i-1,j)){
+                return true;
+            }
+        }
+        deque.removeLast();
+        maze[i][j] = 0;
+        return false;
+    }
+}
+````
+
+## 44.数独×
+
+和上一道题有相似的思路，甚至其实更简单，只是这个方法并不是最简便的
+
+遍历数独，对于每一个位置，如果是0，那么尝试从1到9填入一个数字，然后进入下一个递归
+
+```java
+import java.io.*;
+import java.util.*;
+
+public class Main{
+    public static void main(String[] args) throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String[] strs = new String[9];
+        int[][] sudoku = new int[9][9];
+        for(int i = 0;i < 9;++i){
+            strs = br.readLine().split(" ");
+            for(int j = 0;j < 9;++j){
+                sudoku[i][j] = Integer.parseInt(strs[j]);
+            }
+        }
+        StringBuilder sb = new StringBuilder();
+        makeFull(sudoku);
+        for(int i = 0;i < 9;++i){
+            for(int j = 0;j < 9;++j){
+                if(j != 8){
+                    sb.append(sudoku[i][j] + " ");
+                }else{
+                    sb.append(sudoku[i][j]);
+                }
+            }
+            if(i != 8) sb.append("\n");
+        }
+        System.out.println(sb.toString());
+    }
+    
+    private static boolean makeFull(int[][] sudoku){
+        for(int i = 0;i < 9;++i){
+            for(int j = 0;j < 9;++j){
+                if(sudoku[i][j] != 0){
+                    continue;
+                }
+                for(int k = 1;k <=9;++k){
+                    if(isValid(i,j,k,sudoku)){
+                        sudoku[i][j] = k;
+                        if(makeFull(sudoku)){
+                            return true;
+                        }
+                        sudoku[i][j] = 0;
+                    }
+                }
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    private static boolean isValid(int i,int j,int k,int[][] sudoku){
+        for(int row = 0;row < 9;++row){
+            if(k == sudoku[row][j]) return false;
+        }
+        for(int col = 0;col < 9;++col){
+            if(k == sudoku[i][col]) return false;
+        }
+        int startRow = (i / 3) * 3;
+        int startCol = (j / 3) * 3;
+        for(int row = startRow;row < startRow + 3;++row){
+            for(int col = startCol;col < startCol + 3;++col){
+                if(k == sudoku[row][col]) return false;
+            }
+        }
+        return true;
+    }
+}
+```
+
+## 45.名字的漂亮度√
+
+细节决定成败啊，总之就是要注意细节啊，虽然自己做出来了，但第一次审题不对，导致读取出错，第二次p忘了减，第三次power忘了减，注意细节啊！！！
+
+```java
+import java.io.*;
+import java.util.Arrays;
+
+public class Main{
+    public static void main(String[] args) throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        int n = Integer.parseInt(br.readLine());
+        for(int i = 1;i <= n;++i){
+            String str = br.readLine();
+            System.out.println(piaoLiang(str));
+        }
+    }
+    private static int piaoLiang(String str){
+        int[] cs = new int[26];
+        int sum = 0;
+        char[] strs = str.toLowerCase().toCharArray();
+        for(int i = 0;i < strs.length;++i){
+            int current = strs[i] - 'a';
+            cs[current]++;
+        }
+        Arrays.sort(cs);
+        int power = 26;
+        int p = 25;
+        while(p >= 0 && cs[p] != 0){
+            sum += (cs[p] * power);
+            p--;
+            power--;
+        }
+        return sum;
+    }
+}
+```
+
 
 
 ## 46.截取字符串√
