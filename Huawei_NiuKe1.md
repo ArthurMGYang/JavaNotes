@@ -2185,6 +2185,137 @@ public class Main{
 }
 ```
 
+## 48.从单向链表中删除指定值节点√(本身确实没47)
+
+这个题，与其说是删除指定节点，不如说考的是链表的合成
+
+```java
+import java.io.*;
+
+public class Main{
+    public static void main(String[] args) throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String line = null;
+        while((line = br.readLine()) != null){
+            String[] strs = line.split(" ");
+            int n = Integer.parseInt(strs[0]);
+            int k = Integer.parseInt(strs[strs.length-1]);
+            ListNode head = new ListNode(Integer.parseInt(strs[1]));
+            ListNode tail = head;
+            for(int i = 2;i <= strs.length-2;i += 2){
+                int val = Integer.parseInt(strs[i]);
+                int prev = Integer.parseInt(strs[i+1]);
+                ListNode current = new ListNode(val);
+                while(tail != null){
+                    if(tail.val == prev){
+                        if(tail.next == null){
+                            tail.next = current;
+                        }else {
+                            current.next = tail.next;
+                            tail.next = current;
+                        }
+                    }
+                    tail = tail.next;
+                }
+                tail = head;
+            }
+            while(head.val == k){
+                head = head.next;
+            }
+            tail = head;
+            ListNode temp = tail.next;
+            while(temp != null){
+                if(temp.val == k){
+                    tail.next = temp.next;
+                }
+                tail = tail.next;
+                temp = temp.next;
+            }
+            System.out.println(head);
+        }
+    }
+}
+
+class ListNode{
+    int val;
+    ListNode next;
+    public ListNode(int val){
+        this.val = val;
+    }
+    public String toString(){
+        if(this == null) return null;
+        ListNode tail = this;
+        StringBuilder sb = new StringBuilder();
+        while(tail.next != null){
+            sb.append(tail.val + " ");
+            tail = tail.next;
+        }
+        sb.append(tail.val);
+        return sb.toString();
+    }
+}
+```
+
+## 50.四则运算×
+
+做过一次，还是不会，你有什么出息啊
+
+递归法：采用一个栈来存储数，遇到符号后进行相应的计算，遇到括号后，对括号内的内容进行递归
+
+```java
+import java.io.*;
+import java.util.LinkedList;
+
+public class Main{
+    public static void main(String[] args) throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String line = null;
+        while((line = br.readLine()) != null){
+            System.out.println(getResult(line));
+        }
+    }
+    
+    private static int getResult(String line){
+        LinkedList<Integer> nums = new LinkedList<>();
+        char sign = '+';
+        char[] chars = line.toCharArray();
+        int num = 0;
+        for(int i = 0;i < line.length();++i){
+            char current = chars[i];
+            if(current >= '0' && current <= '9'){
+                num = num * 10 + (current - '0');
+            }
+            if(current == '('){
+                int p = i+1;
+                int count = 1;
+                while(count>0){
+                    if(chars[p] == '(') count++;
+                    if(chars[p] == ')') count--;
+                    p++;
+                }
+                num = getResult(line.substring(i+1,p-1));
+                i = p -1;
+            }
+            if(current == '+' || current == '-' || current == '*' || current == '/' || i == chars.length-1){
+                if(sign == '+') nums.addLast(num);
+                else if(sign == '-') nums.addLast(0-num);
+                else if(sign == '*') nums.addLast(nums.pollLast() * num);
+                else if(sign == '/') nums.addLast(nums.pollLast() / num);
+                sign = current;
+                num = 0;
+            }
+        }
+        int ans = 0;
+        while(!nums.isEmpty()){
+            ans += nums.pollLast();
+        }
+        return ans;
+    }
+}
+```
+
+
+
 ## 51.输出链表的倒数第K个节点√
 
 经典的快慢指针，不过这个题还有个坑，即K可能为0，导致最终不合法，所以需要进行判断
@@ -2236,6 +2367,59 @@ class ListNode{
 }
 ```
 
+## 52.计算字符串的编辑距离×
+
+经典的动态规划，力扣上也做过，但是还是不会，刷这么多题有啥意义呢？
+
+对于字符串A[0,.....i-1]和B[0,.....j-1]，要将其中一个变形成为另一个，有两种情况
+
+1. A[i-1] == B[j-1]，那么这个位置是不用懂的，只用考虑A[i-2]以前和B[j-2]以前的元素，即`dp[i][j] = dp[i-1][j-1]`
+
+2. 当不等的时候，那么可以分三种情况
+
+   1. 从A[0,...i-2]编辑到B[0,...j-1]再删除A[i-1]
+   2. 从A[0,....i-1]到B[0,...j-2]再删除B[j-1]
+   3. 从A[0,...i-1]到B[0,....j-2]再把A[i-1]替换成B[j-1]
+
+   即从上述三种情况得到最小的可能性
+
+3. 边界条件`dp[0][0] = 0`，同时两个边界`dp[0][j] = j, dp[i][0] = i`
+
+```java
+import java.io.*;
+import java.util.*;
+
+public class Main{
+    public static void main(String[] args) throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String line = null;
+        while((line = br.readLine()) != null){
+            String str = br.readLine();
+            System.out.println(getStringDistance(line,str));
+        }
+    }
+    
+    private static int getStringDistance(String s1,String s2){
+        if(s1.equals(s2)) return 0;
+        int[][] dp = new int[s1.length()+1][s2.length()+1];
+        dp[0][0] = 0;
+        for(int i = 1;i < dp.length;++i){
+            dp[i][0] = i;
+        }
+        for(int j = 1;j < dp[0].length;++j){
+            dp[0][j] = j;
+        }
+        for(int i = 1;i < dp.length;++i){
+            for(int j = 1;j < dp[0].length;++j){
+                if(s1.charAt(i-1) == s2.charAt(j-1)) dp[i][j] = dp[i-1][j-1];
+                else dp[i][j] = Math.min(dp[i-1][j-1]+1,Math.min(dp[i-1][j]+1,dp[i][j-1]+1));
+            }
+        }
+        return dp[s1.length()][s2.length()];
+    }
+}
+```
+
 ## 53.杨辉三角的变形×
 
 这个题，看似是简单题，但是如果想要做，就需要找规律，找到了规律确实是简单题，否则，这个问题就是非常复杂的了
@@ -2277,55 +2461,50 @@ public class Main{
 
 ```java
 import java.io.*;
-import java.util.*;
+import java.util.LinkedList;
 
 public class Main{
     public static void main(String[] args) throws IOException{
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         String line = null;
         while((line = br.readLine()) != null){
-            System.out.println(solve(line));
+            System.out.println(getResult(line));
         }
     }
-    public static int solve(String s){
-        if(s==null||s.length()==0) return 0;
-        Stack<Integer> stack = new Stack<>();
-        char[] chs = s.toCharArray();
-        int len = s.length(), number=0;
+    
+    private static int getResult(String line){
+        LinkedList<Integer> nums = new LinkedList<>();
         char sign = '+';
-        for(int i=0;i<len;i++){
-            char c = chs[i];
-            if(c==' ') continue;
-            if(Character.isDigit(c)){
-                number = number*10 + c-'0';
+        char[] chars = line.toCharArray();
+        int num = 0;
+        for(int i = 0;i < line.length();++i){
+            char current = chars[i];
+            if(current >= '0' && current <= '9'){
+                num = num * 10 + (current - '0');
             }
-            if(c=='('){
-                int j=i+1, count=1;
+            if(current == '('){
+                int p = i+1;
+                int count = 1;
                 while(count>0){
-                    if(chs[j]==')') count--;
-                    if(chs[j]=='(') count++;
-                    j++;
+                    if(chars[p] == '(') count++;
+                    if(chars[p] == ')') count--;
+                    p++;
                 }
-                number = solve(s.substring(i+1,j-1));
-                i=j-1;
+                num = getResult(line.substring(i+1,p-1));
+                i = p -1;
             }
-            if(!Character.isDigit(c)||i==len-1){
-                if(sign=='+'){
-                    stack.push(number);
-                }else if(sign=='-'){
-                    stack.push(-1*number);
-                }else if(sign=='*'){
-                    stack.push(stack.pop()*number);
-                }else if(sign=='/'){
-                    stack.push(stack.pop()/number);
-                }
-                sign = c;
-                number = 0;
+            if(current == '+' || current == '-' || current == '*' || current == '/' || i == chars.length-1){
+                if(sign == '+') nums.addLast(num);
+                else if(sign == '-') nums.addLast(0-num);
+                else if(sign == '*') nums.addLast(nums.pollLast() * num);
+                else if(sign == '/') nums.addLast(nums.pollLast() / num);
+                sign = current;
+                num = 0;
             }
         }
         int ans = 0;
-        while(!stack.isEmpty()){
-            ans += stack.pop();
+        while(!nums.isEmpty()){
+            ans += nums.pollLast();
         }
         return ans;
     }
