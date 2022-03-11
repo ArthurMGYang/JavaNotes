@@ -333,6 +333,451 @@ public class Main{
 }
 ```
 
+## 63.DNA序列√
+
+其实也不难，就是麻烦
+
+```java
+import java.io.*;
+
+public class Main{
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String gene = null;
+        while((gene = br.readLine()) != null){
+            int length = Integer.parseInt(br.readLine());
+            int start = 0,end = start + length;
+            double maxGC = 0;
+            String gc = "";
+            while(end <= gene.length()){
+                String current = gene.substring(start,end);
+                double gcRatio = getGCRatio(current);
+                if(gcRatio > maxGC){
+                    maxGC = gcRatio;
+                    gc = current;
+                }
+                start++;
+                end++;
+            }
+            System.out.println(gc);
+        }
+    }
+    
+    private static double getGCRatio(String str){
+        char[] strs = str.toCharArray();
+        double count = 0;
+        for(char c : strs){
+            if(c == 'G' || c == 'C') count++;
+        }
+        return count/str.length();
+    }
+}
+```
+
+## 64.MP3光标位置√
+
+简单的模拟，不知道中途我错在哪儿了
+
+```java
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class Main {
+
+	public static void main(String[] args) throws IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		// Scanner sc = new Scanner(System.in);
+		String str = null;
+		while ((str = br.readLine()) != null) {
+			String str2 = br.readLine();
+			int num = Integer.parseInt(str);
+
+			char[] array = str2.toCharArray();
+			int current = 1;
+			int start = 1;
+			for (char one : array) {
+				if (num <= 4) {
+					if(one == 'U') {
+						if(current == 1) {
+							current = num;
+						}else {
+							current--;
+						}
+						
+					}
+					else if(one == 'D') {
+						if(current == num) {
+							current = 1;
+						}else {
+							current++;
+						}
+						
+					}
+				}
+				if(num > 4) {
+					if(one == 'U') {
+						if(current == 1) {
+							current = num;
+							start = num-3;
+						}else if(current == start) {
+							current--;
+							start--;
+						}else {
+							current--;
+						}
+					}else if(one == 'D') {
+						if(current == num) {
+							current = 1;
+							start = 1;
+						}else if(current == start+3) {
+							current++;
+							start++;
+						}else {
+							current++;
+						}
+					}
+				}
+			}
+			StringBuilder sb = new StringBuilder();
+			for(int i=1;i<=4;i++) {
+				if(num >=i) {
+					sb.append(start + i -1).append(" ");
+				}
+			}
+			System.out.println(sb.toString().trim());
+			System.out.println(current);
+		}
+	}
+}
+```
+
+## 65.两个字符串的最长公共子串！
+
+虽然做出来了，但是复杂度高，且全是字符串运算，所以时间花费太多
+
+动态规划
+
+```java
+import java.io.*;
+import java.util.*;
+public class Main{
+    public static void main(String[] args) throws Exception{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String str;
+        while((str = br.readLine())!=null){
+            String ss = br.readLine();
+            if(str.length()<ss.length()){
+                System.out.println(res(str,ss));
+            }else{
+                System.out.println(res(ss,str));
+            }
+        }
+    }
+    public static String res(String s,String c){
+        char[] ch1 = s.toCharArray();
+        char[] ch2 = c.toCharArray();
+        int[][] ins = new int[ch1.length + 1][ch2.length + 1];
+        int max = 0;
+        int start = 0;
+        for (int i = 0; i < ch1.length; i++) {
+            for (int j = 0; j < ch2.length; j++) {
+                if(ch1[i]==ch2[j]){
+                    ins[i+1][j+1] = ins[i][j]+1;
+                    if(ins[i+1][j+1]>max){
+                        max = ins[i+1][j+1];
+                        start = i-max;
+                    }
+                }
+            }
+        }
+        return s.substring(start+1,start+max+1);
+    }
+}
+```
+
+## 66.配置文件恢复√
+
+典型的麻烦但是不难，我的速度不快，但是其实主要是全程采用了字符串操作，而排行榜上的操作，属实是有点穷举了，反正6条，穷举肯定更快，但是显然我这个具有普遍性
+
+```java
+import java.io.*;
+
+public class Main{
+    static String[][] structions = new String[][]{{"reset","","reset what"},
+                                                  {"reset","board","board fault"},
+                                                  {"board","add","where to add"},
+                                                  {"board","delete","no board at all"},
+                                                  {"reboot","backplane","impossible"},
+                                                  {"backplane","abort","install first"},
+                                                  {"he","he","unknown command"}};
+    
+    public static void main(String[] args) throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String struction = null;
+        while((struction = br.readLine())  != null){
+            String[] strs = struction.split(" ");
+            int n = -1;
+            if(strs.length == 1){
+                n = getMatch(strs[0]);
+            }else {
+                n = getMatch(strs[0],strs[1]);
+            }
+            System.out.println(structions[n][2]);
+        }
+    }
+    
+    private static int getMatch(String str){
+        int n = 6;
+        for(int i = 0;i < 6;++i){
+            if(structions[i][1].equals("") && structions[i][0].startsWith(str)){
+                n = i;
+                break;
+            }
+        }
+        return n;
+    }
+    
+    private static int getMatch(String str1,String str2){
+        int n = 6;
+        for(int i = 0;i < 6;++i){
+            if(!structions[i][0].equals("") && !structions[i][1].equals("")){
+                if(structions[i][0].startsWith(str1) && structions[i][1].startsWith(str2)){
+                    if(n == 6){
+                        n = i;
+                    }else {
+                        n = 6;
+                        break;
+                    }
+                }
+            }
+        }
+        return n;
+    }
+}
+```
+
+## 67.24点游戏算法！
+
+dfs啊dfs啊！！！！
+
+```java
+import java.io.*;
+
+public class Main{
+    public static void main(String[] args) throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String line = null;
+        while((line = br.readLine()) != null){
+            String[] strs = line.split(" ");
+            int[] nums = new int[4];
+            for(int i = 0;i < 4;++i){
+                nums[i] = Integer.parseInt(strs[i]);
+            }
+            boolean[] visited = new boolean[4];
+            System.out.println(dfs(nums,0,visited,0));
+        }
+        br.close();
+    }
+    
+    private static boolean dfs(int[] nums,double sum,boolean[] visited,int k){
+        if(sum == 24 && k == 4){
+            return true;
+        }
+        for(int i = 0;i < 4;++i){
+            if(!visited[i]){
+                visited[i] = true;
+                if(dfs(nums,sum+nums[i],visited,k+1) ||
+                   dfs(nums,sum-nums[i],visited,k+1) ||
+                   dfs(nums,sum*nums[i],visited,k+1) ||
+                   dfs(nums,sum/nums[i],visited,k+1)){
+                    return true;
+                }
+                visited[i] = false;
+            }
+        }
+        return false;
+    }
+}
+```
+
+## 69.矩阵乘法√
+
+可恶，要是最后我是这种考题就好了
+
+```java
+import java.io.*;
+
+public class Main{
+    public static void main(String[] args) throws IOException{
+        BufferedReader br= new BufferedReader(new InputStreamReader(System.in));
+        String xS = null;
+        while((xS = br.readLine()) != null){
+            int x = Integer.parseInt(xS);
+            int y = Integer.parseInt(br.readLine());
+            int z = Integer.parseInt(br.readLine());
+            int[][] A = new int[x][y];
+            int[][] B = new int[y][z];
+            for(int i = 0;i < x;++i){
+                String[] strs = br.readLine().split(" ");
+                for(int j = 0;j < y;++j){
+                    A[i][j] = Integer.parseInt(strs[j]);
+                }
+            }
+            for(int i = 0;i < y;++i){
+                String[] strs = br.readLine().split(" ");
+                for(int j = 0;j < z;++j){
+                    B[i][j] = Integer.parseInt(strs[j]);
+                }
+            }
+            int[][] ans = AB(A,B);
+            StringBuilder sb = new StringBuilder();
+            for(int i = 0;i < x;++i){
+                for(int j = 0;j < z;++j){
+                    if(j!=z-1){
+                        sb.append(ans[i][j] + " ");
+                    }else{
+                        sb.append(ans[i][j]);
+                    }
+                }
+                if(i!=x-1) sb.append("\n");
+            }
+            System.out.println(sb);
+        }
+        br.close();
+    }
+    
+    private static int[][] AB(int[][] A,int[][] B){
+        int x = A.length;
+        int y = B.length;
+        int z = B[0].length;
+        int[][] ans = new int[x][z];
+        for(int i = 0;i < x;++i){
+            for(int j = 0;j < z;++j){
+                int sum = 0;
+                for(int k = 0;k < y;++k){
+                    sum += (A[i][k] * B[k][j]);
+                }
+                ans[i][j] = sum;
+            }
+        }
+        return ans;
+    }
+}
+```
+
+## 70.矩阵乘法计算量估算×
+
+我已经开始为下周的考试而感到担心了
+
+这个题为什么可以不用递归，首先右括号挨着肯定只有一次计算，其次，这个的算法是一样的，不用像运算那个题的加减乘除都来一遍
+
+```java
+import java.io.*;
+import java.util.LinkedList;
+
+public class Main{
+    public static void main(String[] args) throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String line = null;
+        while((line = br.readLine()) != null){
+            int n = Integer.parseInt(line);
+            int[][] juzheng = new int[n][2];
+            for(int i = 0;i < n;++i){
+                String[] strs = br.readLine().split(" ");
+                juzheng[i][0] = Integer.parseInt(strs[0]);
+                juzheng[i][1] = Integer.parseInt(strs[1]);
+            }
+            String expression = br.readLine();
+            System.out.println(getCalCount(juzheng,expression));
+        }
+        br.close();
+    }
+    
+    private static int getCalCount(int[][] juzheng,String expression){
+        LinkedList<int[]> stack = new LinkedList<>();
+        int count = 0;
+        char[] chars = expression.toCharArray();
+        for(int i = 0;i < chars.length;++i){
+            char c = chars[i];
+            if(c >= 'A' && c <= 'Z'){
+                stack.addLast(juzheng[c-'A']);
+            }else if(c == '('){
+                continue;
+            }else if(c == ')' || i == chars.length-1){
+                int[] juzheng2 = stack.pollLast();
+                int[] juzheng1 = stack.pollLast();
+                count += juzheng1[0] * juzheng1[1] * juzheng2[1];
+                int[] result = new int[]{juzheng1[0],juzheng2[1]};
+                stack.addLast(result);
+            }
+        }
+        return count;
+    }
+}
+```
+
+## 71.字符串通配符×
+
+什么勾八题啊？
+
+动态规划
+
+```java
+import java.io.*;
+
+public class Main{
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String s1 = null;
+        while((s1 = br.readLine()) != null){
+            String s2 = br.readLine();
+            char[] rule = s1.toCharArray();
+            char[] str = s2.toCharArray();
+            System.out.println(isMatch(str,rule));
+        }
+        br.close();
+    }
+    
+    private static boolean isMatch(char[] str,char[] rule){
+        int n1 = str.length;
+        int n2 = rule.length;
+        boolean[][] dp = new boolean[n1+1][n2+1];
+        dp[0][0] = true;
+        for(int i = 0;i <= n1;++i){
+            for(int j = 1;j <= n2;++j){
+                if(rule[j-1] == '*'){
+                    dp[i][j] = dp[i][j-1];
+                    if(i == 0) break;
+                    for(int k = i-1;k>=0;--k){
+                        if(Character.isLetter(str[k]) || Character.isDigit(str[k])){
+                            dp[i][j] = dp[i][j] || dp[k][j];
+                        }else{
+                            dp[i][j] = dp[i][j] || dp[k][j-1];
+                            break;
+                        }
+                    }
+                }else{
+                    if(i == 0) break;
+                    if(twoMatch(str[i-1],rule[j-1])){
+                        dp[i][j] = dp[i-1][j-1];
+                    }
+                }
+            }
+        }
+        return dp[n1][n2];
+    }
+    
+    private static boolean twoMatch(char str,char rule){
+        return str == rule || 
+            (Character.isLetter(str) && Character.isLetter(rule) && Math.abs(str-rule) == Math.abs('A'-'a')) ||
+            (rule == '?' && (Character.isLetter(str) || Character.isDigit(str)));
+    }
+}
+```
+
+
+
 ## 72.百钱买百鸡！
 
 虽然我做出来了，但是简单的数学我居然没有化简
@@ -1068,6 +1513,63 @@ public class Main{
 }
 ```
 
+## 99.自守数√
+
+虽然我做出来了，但是因为有String的参与，速度非常慢，所以根据排行榜上的题解进行了调整
+
+```java
+import java.io.*;
+
+public class Main{
+    public static void main(String[] args) throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String line = null;
+        while((line = br.readLine()) != null){
+            int n = Integer.parseInt(line);
+            int count = 0;
+            for(int i = 0;i <= n;++i){
+                if(isZiShou(i)) count++;
+            }
+            System.out.println(count);
+        }
+        br.close();
+    }
+    
+    private static boolean isZiShou(int n){
+//         int n2 = n * n;
+//         return (n2+"").endsWith((n+""));
+        int temp = n;
+        int j = 1;
+        while(temp != 0){
+            temp /= 10;
+            j *= 10;
+        }
+        return (n*n-n)%j == 0;
+    }
+}
+```
+
+## 100.等差数列√
+
+。。。。。
+
+```java
+import java.io.*;
+
+public class Main{
+    public static void main(String[] args) throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String line = null;
+        while((line = br.readLine()) != null){
+            int n = Integer.parseInt(line);
+            int end = 3 * n - 1;//3 * (n-1) + 2
+            int sum = (2 + end) * n /2;
+            System.out.println(sum);
+        }
+    }
+}
+```
+
 ## 101.输入整型数组和排序标识，对其元素按照升序或降序进行排序√
 
 同理，用了API和没用API都搞了
@@ -1124,6 +1626,177 @@ public class Main{
         for(int i : nums) pq.add(i);
         for(int i = 0;i < n;i++) ordered[n-1-i] = pq.poll();
         return ordered;
+    }
+}
+```
+
+## 102.字符统计√
+
+利用HashMap进行统计，顺便练习了一下怎么对HashMap里面的Entry进行排序
+
+```java
+import java.io.*;
+import java.util.*;
+
+public class Main{
+    public static void main(String[] args) throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String line = null;
+        while((line = br.readLine()) != null){
+            HashMap<Character,Integer> map  = new HashMap<>();
+            char[] strs = line.toCharArray();
+            for(char c : strs){
+                map.put(c,map.getOrDefault(c,0) + 1);
+            }
+            ArrayList<Map.Entry<Character,Integer>> list = new ArrayList<>(map.entrySet());
+            Collections.sort(list,new Comparator<Map.Entry<Character,Integer>>(){
+                public int compare(Map.Entry<Character,Integer> o1, Map.Entry<Character,Integer> o2){
+                    if(o1.getValue().equals(o2.getValue())){
+                        return o1.getKey() - o2.getKey();
+                    }else {
+                        return o2.getValue() - o1.getValue();
+                    }
+                }
+            });
+            StringBuilder sb = new StringBuilder();
+            for(Map.Entry<Character,Integer> entry : list){
+                sb.append(entry.getKey());
+            }
+            System.out.println(sb);
+        }
+    }
+}
+```
+
+但是，因为全是小写字母和数字，所以还是有办法的
+
+```java
+import java.io.*;
+import java.util.*;
+
+public class Main{
+    public static void main(String[] args) throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String line = null;
+        while((line = br.readLine()) != null){
+            int[] abc = new int[128];
+            char[] strs = line.toCharArray();
+            for(char c : strs){
+                abc[(int)c]++;
+            }
+            int max = 0;
+            for(int num : abc){
+                if(max < num) max = num;
+            }
+            StringBuilder sb = new StringBuilder();
+            while(max > 0){
+                for(int i = 0;i < abc.length;++i){
+                    if(abc[i] == max){
+                        sb.append((char)i);
+                    }
+                }
+                max--;
+            }
+            System.out.println(sb);
+        }
+        br.close();
+    }
+}
+```
+
+## 106.字符串逆序√
+
+......
+
+```java
+import java.io.*;
+
+public class Main{
+    public static void main(String[] args) throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String line = null;
+        while((line = br.readLine()) != null){
+            char[] origin = line.toCharArray();
+            StringBuilder sb = new StringBuilder();
+            for(int i = origin.length-1;i >= 0;--i){
+                sb.append(origin[i]);
+            }
+            System.out.println(sb);
+        }
+    }
+}
+```
+
+## 107.求解立方根×
+
+想到了二分法求，但是没想到怎么控制误差，新知识get
+
+```java
+import java.io.*;
+
+public class Main{
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String line = null;
+        while((line = br.readLine()) != null){
+            double n = Double.parseDouble(line);
+            System.out.println(String.format("%.1f",getResult(n)));
+        }
+        br.close();
+    }
+    
+    private static double getResult(double n){
+        double left = 0,right = 0;
+        boolean neg = false;
+        if(n < 0){
+            neg = true;
+            n = -n;
+        }
+        if(n < 1) right = 1;
+        else right = n;
+        while(true){
+            double target = left + (right - left)/2;
+            double distance = n/(target* target) -target;
+            if(distance >= -0.1 && distance <= 0.1){
+                if(neg) return -target;
+                else return target;
+            }else if(distance > 0.1) left = target;
+            else right = target;
+        }
+    }
+}
+```
+
+## 108.求最小公倍数√
+
+求最大公约数的方法值得学习
+
+```java
+import java.io.*;
+
+//最小公倍数即两个数的乘积再除以最大公约数
+
+public class Main{
+    public static void main(String[] args) throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String line = null;
+        while((line = br.readLine())!= null){
+            String[] strs = line.split(" ");
+            int n = Integer.parseInt(strs[0]);
+            int m = Integer.parseInt(strs[1]);
+            int mn = n * m;
+            if(n > m){
+                int temp = n;
+                n = m;
+                m = temp;
+            }
+            while(n != 0){//求最大公约数
+                int r = m % n;
+                m = n;
+                n = r;
+            }
+            System.out.println(mn/m);
+        }
     }
 }
 ```
