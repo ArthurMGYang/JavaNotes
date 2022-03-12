@@ -856,6 +856,89 @@ public class Main{
 }
 ```
 
+## 74.参数分析√
+
+虽然做出来了，但是细节还是差了点，调试了几次才弄对，所以细节决定成败啊
+
+```java
+import java.io.*;
+import java.util.ArrayList;
+
+public class Main{
+    public static void main(String[] args) throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String line = null;
+        while((line = br.readLine()) != null){
+            int start = 0,end = 0;
+            ArrayList<String> list = new ArrayList<>();
+            char[] chars = line.toCharArray();
+            while(end < chars.length){
+                if(chars[end] == ' '){
+                    list.add(line.substring(start,end));
+                    start = end+1;
+                    end = start;
+                }else if(chars[end] == '"'){
+                    start = end+1;
+                    end++;
+                    while(end < chars.length && chars[end] != '"'){
+                        end++;
+                    }
+                    list.add(line.substring(start,end));
+                    end += 2;
+                    start = end;
+                }else if(end == chars.length-1){
+                    list.add(line.substring(start,end+1));
+                    break;
+                }else{
+                    end++;
+                }
+            }
+            System.out.println(list.size());
+            for(String s : list){
+                System.out.println(s);
+            }
+        }
+    }
+}
+```
+
+## 75.公共子串计算！
+
+因为数据量小，所以时间复杂度可以达到O(n^3)，但是即使是这样，我的方法不是最简的，是一个即使不用做笔记也能想到的，所以笔记采取了排行榜上更牛逼的解法
+
+```java
+import java.io.*;
+
+public class Main{
+    public static void main(String[] args)throws Exception{
+        BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
+        String str1 = "";
+        String str2 = "";
+
+        while((str1 = bf.readLine())!= null && (str2 = bf.readLine())!= null){
+            int max = 0;
+            char[] cha1 = str1.toCharArray();
+            char[] cha2 = str2.toCharArray();
+            for(int i = 0; i < str1.length(); i++){
+                for(int j = 0; j < str2.length(); j++){
+                    int t1 = i;
+                    int t2 = j;
+                    int count = 0;
+                    while(cha1[t1] == cha2[t2]){
+                        t1++;
+                        t2++;
+                        count++;
+                        max = Math.max(count,max);
+                        if(t1 == cha1.length || t2 == cha2.length) break;
+                    }
+                }
+            }
+            System.out.println(max);
+        }
+    }
+}
+```
+
 ## 76.尼科彻斯定理√
 
 其实还是找规律，找到规律了就简单了
@@ -905,6 +988,69 @@ public class Main{
     }
 }
 ```
+
+## 77.火车进站×⭐️
+
+傻逼吧我是个，dfs做过多少遍了，还是不会做，记得最后把所有的dfs全部找来看一遍
+
+```java
+import java.io.*;
+import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Collections;
+
+public class Main{
+    private static LinkedList<Integer> queue = new LinkedList<>();
+    private static LinkedList<Integer> stack = new LinkedList<>();
+    private static ArrayList<String> ans = new ArrayList<>();
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String line = null;
+        while((line = br.readLine()) != null){
+            int n = Integer.parseInt(line);
+            String[] strs = br.readLine().split(" ");
+            for(int i = 0;i < n;++i){
+                queue.addLast(Integer.parseInt(strs[i]));
+            }
+            dfs("");
+            Collections.sort(ans);
+            StringBuilder sb = new StringBuilder();
+            for(String str : ans){
+                sb.append(str + "\n");
+            }
+            System.out.println(sb.toString().substring(0,sb.length()-1));
+        }
+        br.close();
+    }
+    
+    private static void dfs(String outQueue){
+        if(queue.isEmpty() && stack.isEmpty()){
+            ans.add(outQueue.trim());
+            return;
+        }
+        //模拟火车出站，火车进站以后，可以选择出或者不出
+        //第一次弹出，表示火车出站了，然后开始进行下一次递归
+        //然后放回去，表示没出站的情况
+        if(!stack.isEmpty()){
+            int num = stack.pollLast();
+            String tempOutQueue = outQueue + num + " ";
+            dfs(tempOutQueue);
+            stack.addLast(num);
+        }
+        //模拟火车进站的情况
+        //如果还有火车没进站，那么可以选择让其进站
+        if(!queue.isEmpty()){
+            int current = queue.pollFirst();
+            stack.addLast(current);
+            dfs(outQueue);
+            stack.pollLast();
+            queue.addFirst(current);
+        }
+    }
+}
+```
+
+
 
 ## 80.整型数组合并√
 
