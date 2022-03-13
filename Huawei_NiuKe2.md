@@ -1224,6 +1224,53 @@ public class Main{
 }
 ```
 
+## 82.真分数分解为埃及分数×
+
+属实是吃了没文化的亏，完全不会数学相关的，求求了，别出数学相关的问题
+
+```java
+import java.io.*;
+
+public class Main{
+    public static void main(String[] args) throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String num = null;
+        while((num = br.readLine()) != null){
+            String[] strs = num.split("\\/");
+            int fenZi = Integer.parseInt(strs[0]);
+            int fenMu = Integer.parseInt(strs[1]);
+            System.out.println(getIG(fenZi,fenMu));
+        }
+        br.close();
+    }
+    
+    private static String getIG(int a,int b){
+        StringBuilder sb = new StringBuilder();
+        if(a > b || a < 1 || b < 2) return "";
+        while(a != 1){
+            if(b%a == 0){
+                b = b/a;
+                a = 1;
+                continue;
+            }
+            if(b % (a-1) == 0){
+                sb.append("1/" + b/(a-1) + "+");
+                a = 1;
+            }else {
+                int c = b/a + 1;
+                a = a-b%a;
+                b = b*c;
+                sb.append("1/" + c + "+");
+            }
+        }
+        sb.append("1/" + b);
+        return sb.toString();
+    }
+}
+```
+
+
+
 ## 83.二维数组操作√
 
 充分体现了华为的题，不难，但是烦
@@ -1515,7 +1562,45 @@ public class Main{
 }
 ```
 
-## 91.走方格的方案数
+## 90.合法IP√
+
+恶心！需要考虑到的情况太多了！
+
+```java
+import java.io.*;
+
+public class Main{
+    public static void main(String[] args) throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String ip = null;
+        while((ip = br.readLine()) != null){
+            if(isValid(ip)) System.out.println("YES");
+            else System.out.println("NO");
+        }
+        br.close();
+    }
+    
+    private static boolean isValid(String ip){
+        String[] ips = ip.split("\\.");
+        if(ips.length != 4) return false;
+        for(String str : ips){
+            if(str.length() == 0 || str.length() > 3) return false;
+            if(str.length() > 1 && str.startsWith("0")) return false;
+            char[] chars = str.toCharArray();
+            for(char c : chars){
+                if(c < '0' || c > '9') return false;
+            }
+            int n = Integer.parseInt(str);
+            if(n > 255 || n < 0) return false;
+        }
+        return true;
+    }
+}
+```
+
+
+
+## 91.走方格的方案数×
 
 基础的动态规划
 
@@ -1551,6 +1636,51 @@ public class Main{
     }
 }
 ```
+
+## 92.在字符串中找出连续最长的数字串√
+
+注意细节啊！
+
+```java
+import java.io.*;
+
+public class Main{
+    public static void main(String[] args) throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String line = null;
+        while((line = br.readLine()) != null){
+            System.out.println(getLonggestInteger(line));
+        }
+        br.close();
+    }
+    
+    private static String getLonggestInteger(String line){
+        StringBuilder sb = new StringBuilder();
+        int start = 0,end = 0, max = 0;
+        char[] chars = line.toCharArray();
+        while(end < chars.length){
+            if(chars[end] >= '0' && chars[end] <= '9'){
+                start = end;
+                while(end < chars.length && Character.isDigit(chars[end])){
+                    end++;
+                }
+                if(end - start > max){
+                    max = end - start;
+                    sb = new StringBuilder();
+                    sb.append(line.substring(start,end));
+                }else if(end - start == max){
+                    sb.append(line.substring(start,end));
+                }
+            }
+            end++;
+        }
+        sb.append("," + max);
+        return sb.toString();
+    }
+}
+```
+
+
 
 ## 94.记票统计√
 
@@ -1849,6 +1979,59 @@ public class Main{
     }
 }
 ```
+
+## 103.Redraiment的走法×
+
+动态规划，根据题意，我们需要找到的是，以num[i]结尾的最长增序列
+
+初始变量：因为每个东西自己算一步，所以每个位置初始都是1
+
+然后开始遍历每个nums[i]，对于每个nums[i]，都是找前面所有比他小的nums[j]，然后更新dp[i]，对于dp[i],是每一个比它小的nums[j]对应的dp[j]+1之后的最大值
+
+同时，因为最长的序列不一定是以最后一个数结尾，所以需要再遍历所有的dp，得到最大的值进行输出
+
+```java
+import java.io.*;
+import java.util.Arrays;
+
+public class Main{
+    public static void main(String[] args) throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String line = null;
+        while((line = br.readLine()) != null){
+            int n = Integer.parseInt(line);
+            int[] nums = new int[n];
+            String[] strs = br.readLine().split(" ");
+            for(int i = 0;i < n;++i){
+                nums[i] = Integer.parseInt(strs[i]);
+            }
+            System.out.println(getMaxStep(nums));
+        }
+    }
+    
+    private static int getMaxStep(int[] nums){
+        int n = nums.length;
+        int[] dp = new int[n];
+        for(int i = 0;i < n;++i){
+            dp[i] = 1;
+        }
+        for(int i = 1;i < n;++i){
+            for(int j = 0;j < i;++j){
+                if(nums[j] < nums[i]){
+                    dp[i] = Math.max(dp[i],dp[j] + 1);
+                }
+            }
+        }
+        int max = 1;
+        for(int num : dp){
+            max = Math.max(max,num);
+        }
+        return max;
+    }
+}
+```
+
+
 
 ## 106.字符串逆序√
 
