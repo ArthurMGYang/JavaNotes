@@ -1562,6 +1562,211 @@ public class Main{
 }
 ```
 
+## 88.扑克牌大小√
+
+同样的，注意细节啊！！！
+
+```java
+import java.io.*;
+import java.util.HashMap;
+
+public class Main{
+    static HashMap<String,Integer> map = new HashMap<>();
+    public static void main(String[] args) throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String line = null;
+        map.put("3",0);
+        map.put("4",1);
+        map.put("5",2);
+        map.put("6",3);
+        map.put("7",4);
+        map.put("8",5);
+        map.put("9",6);
+        map.put("10",7);
+        map.put("J",8);
+        map.put("Q",9);
+        map.put("K",10);
+        map.put("A",11);
+        map.put("2",12);
+        map.put("joker",13);
+        map.put("JOKER",14);
+        while((line = br.readLine()) != null){
+            String[] cards = line.split("\\-");
+            String[] cards1 = cards[0].split(" ");
+            String[] cards2 = cards[1].split(" ");
+            if(!isValidCompare(cards1,cards2)){
+                System.out.println("ERROR");
+                continue;
+            }
+            String[] win = null;
+            boolean isWin = false;
+            if(cardsType(cards1).equals("boom") && !cardsType(cards2).equals("boom")){
+                win = cards1;
+                isWin = true;
+            }else if(!cardsType(cards1).equals("boom") && cardsType(cards2).equals("boom")){
+                win = cards2;
+                isWin = true;
+            }
+            if(!isWin){
+                if(cardsType(cards1).equals("single") || cardsType(cards1).equals("pair") ||
+                   cardsType(cards1).equals("triple") || cardsType(cards1).equals("ShunZi")){
+                    win = singlePairTripleShunZiCompare(cards1,cards2);
+                }else{
+                    win = boomCompare(cards1,cards2);
+                }
+            }
+            StringBuilder sb = new StringBuilder();
+            for(String s : win){
+                sb.append(s + " ");
+            }
+            System.out.println(sb.toString().substring(0,sb.length()-1));
+        }
+        br.close();
+    }
+    
+    private static String cardsType(String[] cards){
+        if(cards.length == 1) return "single";
+        if(cards.length == 2 && cards[0].equals(cards[1])) return "pair";
+        if(cards.length == 3 && cards[0].equals(cards[1]) && cards[0].equals(cards[2])) return "triple";
+        if(cards.length == 4 || (cards.length == 2 && (cards[0].equals("joker") || cards[1].equals("joker"))))
+            return "boom";
+        if(cards.length == 5) return "ShunZi";
+        return null;
+    }
+    
+    private static boolean isValidCompare(String[] cards1,String[] cards2){
+        if(cardsType(cards1).equals(cardsType(cards2))) return true;
+        if(cardsType(cards1).equals("boom") || cardsType(cards2).equals("boom")) return true;
+        return false;
+    }
+    
+    private static String[] singlePairTripleShunZiCompare(String[] cards1,String[] cards2){
+        int n1 = map.get(cards1[0]);
+        int n2 = map.get(cards2[0]);
+        return n1 > n2 ? cards1 : cards2;
+    }
+    
+    private static String[] boomCompare(String[] cards1,String[] cards2){
+        if(cards1[0].equals("joker") || cards1[1].equals("joker")) return cards1;
+        if(cards2[0].equals("joker") || cards1[2].equals("joker")) return cards2;
+        int n1 = map.get(cards1[0]);
+        int n2 = map.get(cards2[0]);
+        return n1 > n2 ? cards1 : cards2;
+    }
+}
+```
+
+## 89.24点运算×
+
+第一次知道原来还真能用穷举法做题的啊，不过也是，扑克牌只有这么多，那么n^5，也算是常数级的运算
+
+```java
+import java.io.*;
+import java.util.LinkedList;
+
+public class Main{
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String line = null;
+        while((line = br.readLine()) != null){
+            String[] cards = line.split(" ");
+            if(!isValidCards(cards)){
+                System.out.println("ERROR");
+                continue;
+            }
+            int num1 = card2Int(cards[0]);
+            int num2 = card2Int(cards[1]);
+            int num3 = card2Int(cards[2]);
+            int num4 = card2Int(cards[3]);
+            System.out.println(compute(num1,num2,num3,num4));
+        }
+        br.close();
+    }
+    
+    private static boolean isValidCards(String[] cards){
+        String base = "345678910JQKA2jokerJOKER";
+        for(String card : cards){
+            if(card.equals("joker") || card.equals("JOKER")) return false;
+            if(!base.contains(card)) return false;
+        }
+        return true;
+    }
+    private static String compute(int num1,int num2,int num3,int num4){
+        int[] nums = new int[]{num1,num2,num3,num4};
+        String[][] symbols = symbol();
+        StringBuilder sb = new StringBuilder();
+        for(int a = 0;a < 4;++a){
+            for(int b = 0;b < 4;++b){
+                for(int c = 0;c < 4;++c){
+                    for(int d = 0;d < 4;++d){
+                        if((a!=b)&&(a!=c)&&(a!=d)&&(b!=c)&&(b!=d)&&(c!=d)){
+                            for(String[] op : symbols){
+                                int sum = calculate(nums[a],nums[b],op[0]);
+                                sum = calculate(sum,nums[c],op[1]);
+                                sum = calculate(sum,nums[d],op[2]);
+                                if(sum == 24){
+                                    sb.append(int2Card(nums[a])+op[0]+int2Card(nums[b])+op[1]+
+                                              int2Card(nums[c])+op[2]+int2Card(nums[d]));
+                                    return sb.toString();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return "NONE";
+    }
+    
+    //穷举所有的运算符可能情况
+    private static String[][] symbol(){
+        //四个数运算，会有三个运算符，运算符
+        String[] symbols = new String[]{"+","-","*","/"};
+        String[][] symbol = new String[64][3];
+        int p = 0;
+        for(int i = 0;i < 4;i++){
+            for(int j = 0;j < 4;j++){
+                for(int k = 0;k < 4;k++){
+                    symbol[p++] = new String[]{symbols[i],symbols[j],symbols[k]};
+                }
+            }
+        }
+        return symbol;
+    }
+    
+    private static int calculate(int a,int b,String op){
+        if(op.equals("+")) return a+b;
+        if(op.equals("-")) return a-b;
+        if(op.equals("*")) return a*b;
+        if(op.equals("/")) return a/b;
+        return 0;
+    }
+    
+    private static int card2Int(String card){
+        switch(card){
+            case "J" : return 11;
+            case "Q" : return 12;
+            case "K" : return 13;
+            case "A" : return 1;
+            case "joker" : return -1;
+            case "JOKER" : return -1;
+        }
+        return Integer.parseInt(card);
+    }
+    private static String int2Card(int num){
+        switch(num){
+            case 11 : return "J";
+            case 12 : return "Q";
+            case 13 : return "K";
+            case 1 : return "A";
+        }
+        return num+"";
+    }
+}
+```
+
+
+
 ## 90.合法IP√
 
 恶心！需要考虑到的情况太多了！
@@ -1680,6 +1885,51 @@ public class Main{
 }
 ```
 
+## 93.数组分组×
+
+dfs的题，预先的处理和思路，算是思考对了路线，但是最后还是没想出来
+
+```java
+import java.io.*;
+import java.util.ArrayList;
+
+public class Main{
+    public static void main(String[] args) throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String line = null;
+        while((line = br.readLine()) != null){
+            int n = Integer.parseInt(line);
+            int[] nums = new int[n];
+            String[] strs = br.readLine().split(" ");
+            for(int i = 0;i < n;++i){
+                nums[i] = Integer.parseInt(strs[i]);
+            }
+            System.out.println(isSplitAble(nums));
+        }
+        br.close();
+    }
+    
+    private static boolean isSplitAble(int[] nums){
+        int sum3 = 0, sum5 = 0, sum = 0;
+        ArrayList<Integer> list = new ArrayList<>();
+        for(int n : nums){
+            if(n % 5 == 0) sum5 += n;
+            else if(n % 3 == 0) sum3 += n;
+            else list.add(n);
+            sum += n;
+        }
+        if(sum % 2 != 0) return false;
+        int target = sum/2 - sum3;
+        return dfs(list,0,target);
+    }
+    
+    private static boolean dfs(ArrayList<Integer> list,int i,int target){
+        if(i == list.size()) return target == 0;
+        return dfs(list,i+1,target) || dfs(list,i+1,target-list.get(i));
+    }
+}
+```
+
 
 
 ## 94.记票统计√
@@ -1721,6 +1971,104 @@ public class Main{
     }
 }
 ```
+
+## 95.人民币转换×
+
+对于这一类题，现在基本上有了个方法，比如人民币是以一千为一个单位，也就是每4位一个循环，然后处理好这个循环，加个单位，再处理下一个循环
+
+```java
+import java.io.*;
+
+public class Main{
+    private static String[] ten = {"零","壹","贰","叁","肆","伍","陆","柒","捌","玖"};
+    private static String[] power = {"万","亿"};
+    private static String[] daiwei = {"元","角","分","整"};
+
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String line = null;
+        while((line = br.readLine()) != null){
+            String[] strs = line.split("\\.");
+            StringBuilder sb = new StringBuilder("人民币");
+            if(strs[1].equals("00") || strs[1].equals("0")){
+                sb.append(solveLeft(strs[0]) + "元整");
+            }else if(strs[0].equals("0")){
+                sb.append(solveRight(strs[1]));
+            }else{
+                sb.append(solveLeft(strs[0]) + "元" + solveRight(strs[1]));
+            }
+            System.out.println(sb);
+        }
+        br.close();
+    }
+    
+    private static String solveRight(String str){
+        StringBuilder sb = new StringBuilder();
+        int jiao = Integer.parseInt(str.substring(0,1));
+        int fen = Integer.parseInt(str.substring(1,2));
+        if(jiao != 0){
+            sb.append(ten[jiao] + "角");
+        }
+        if(fen != 0){
+            sb.append(ten[fen] + "分");
+        }
+        return sb.toString();
+    }
+    
+    private static String solveLeft(String str){
+        StringBuilder sb = new StringBuilder();
+        int pow = 0;
+        int money = Integer.parseInt(str);
+        while(money != 0){
+            if(pow != 0){
+                sb.append(power[pow-1]);
+            }
+            int current4 = money % 10000;
+            int geWei = current4  % 10;
+            int shiWei = (current4 / 10) % 10;
+            int baiWei = (current4 / 100) % 10;
+            int qianWei = (current4 / 1000) % 10;
+            if(geWei != 0){
+                sb.append(ten[geWei]);
+            }
+            
+            if(shiWei != 0){
+                sb.append("拾");
+                if(shiWei != 1){
+                    sb.append(ten[shiWei]);
+                }
+            }else{
+                if(geWei != 0 && (current4 > 99 || money > 10000)){
+                    sb.append(ten[0]);
+                }
+            }
+            
+            if(baiWei != 0){
+                sb.append("佰");
+                sb.append(ten[baiWei]);
+            }else{
+                if(shiWei != 0 && (current4 > 999 || money > 10000)){
+                    sb.append(ten[0]);
+                }
+            }
+            if(qianWei != 0){
+                sb.append("仟");
+                sb.append(ten[qianWei]);
+            }else{
+                if(baiWei != 0 && money > 10000){
+                    sb.append(ten[0]);
+                }
+            }
+            money /= 10000;
+            pow++;
+            if(pow > 2) pow = 1;
+        }
+        return sb.reverse().toString();
+    }
+}
+```
+
+
 
 ## 96.表示数字√
 
@@ -1788,6 +2136,149 @@ public class Main{
     }
 }
 ```
+
+## 98.自动售货系统×
+
+因为是个很复杂的题，但是本身过程看起来不是很复杂，所以我就没做了，反正不会出现原题
+
+```java
+import java.util.*;
+import java.io.*;
+public class Main{
+    public static void main(String[] args) throws IOException{
+        BufferedReader br  = new BufferedReader(new InputStreamReader(System.in));
+        String str;
+        while((str=br.readLine())!=null){
+            String[] arr = str.split(";");
+            int[] price = {2,3,4,5,8,6};
+            int[] amount = {1,2,5,10};
+            int[] money = new int[4];
+            int[] goods = new int[6];
+            int sum = 0;
+            for(String s:arr){
+                if(s.startsWith("r ")){
+                    System.out.println("S001:Initialization is successful");
+                    String[] arr1 = s.split(" ");
+                    String[] arr2 = arr1[1].split("-");
+                    for(int i = 0;i < arr2.length;i++){
+                        goods[i] = Integer.parseInt(arr2[i]);
+                    }
+                    arr2 = arr1[2].split("-");
+                    for(int i = 0;i < arr2.length;i++){
+                        money[i] = Integer.parseInt(arr2[i]);
+                    }
+                }else if(s.startsWith("p ")){
+                    int input = Integer.parseInt(s.substring(2));
+                    if(input!=1 && input!=2 && input!=5 && input!=10){
+                        System.out.println("E002:Denomination error");
+                        continue;
+                    }
+                    if((input==5 || input==10) && (money[0]+money[1]*2<input)){
+                        System.out.println("E003:Change is not enough, pay fail");
+                        continue;
+                    }
+                    boolean flag = true;
+                    for(int item:goods){
+                        if(item!=0){
+                            flag = false;
+                            break;
+                        }
+                    }
+                    if(flag){
+                        System.out.println("E005:All the goods sold out");
+                    }else{
+                        sum += input;
+                        for(int i = 0;i < amount.length;i++){
+                            if(amount[i] == input){
+                                money[i]++;
+                                break;
+                            }
+                        }
+                        System.out.println("S002:Pay success,balance=" + sum);
+                    }
+                }else if(s.startsWith("b ")){
+                    String good = s.substring(2);
+                    if(!good.equals("A1") && !good.equals("A2") && !good.equals("A3") && !good.equals("A4") && !good.equals("A5") && !good.equals("A6")){
+                        System.out.println("E006:Goods does not exist");
+                        continue;
+                    }
+                    int name = Integer.parseInt(good.substring(1)) - 1;
+                    if(goods[name] == 0){
+                        System.out.println("E007:The goods sold out");
+                        continue;
+                    }
+                    if(sum < price[name]){
+                        System.out.println("E008:Lack of balance");
+                    }else{
+                        sum -= price[name];
+                        goods[name]--;
+                        System.out.println("S003:Buy success,balance=" + sum);
+                    }
+                }else if(s.equals("c")){
+                    if(sum == 0){
+                        System.out.println("E009:Work failure");
+                    }else{
+                        StringBuilder sb = new StringBuilder();
+                        if(sum/10 >= money[3]){
+                            sum -= 10*money[3];
+                            sb.append("10 yuan coin number=").append(money[3]);
+                            money[3] = 0;
+                        }else{
+                            sb.append("10 yuan coin number=").append(sum/10);
+                            money[3] -= sum/10;
+                            sum %= 10;
+                        }
+                        if(sum/5 >= money[2]){
+                            sum -= 5*money[2];
+                            sb.insert(0,"\n").insert(0,money[2]).insert(0,"5 yuan coin number=");
+                            money[2] = 0;
+                        }else{
+                            sb.insert(0,"\n").insert(0,sum/5).insert(0,"5 yuan coin number=");
+                            money[2] -= sum/5;
+                            sum %= 5;
+                        }
+                        if(sum/2 >= money[1]){
+                            sum -= 2*money[1];
+                            sb.insert(0,"\n").insert(0,money[1]).insert(0,"2 yuan coin number=");
+                            money[1] = 0;
+                        }else{
+                            sb.insert(0,"\n").insert(0,sum/2).insert(0,"2 yuan coin number=");
+                            money[1] -= sum/2;
+                            sum %= 2;
+                        }
+                        if(sum >= money[0]){
+                            sum -= money[0];
+                            sb.insert(0,"\n").insert(0,money[0]).insert(0,"1 yuan coin number=");
+                            money[0] = 0;
+                        }else{
+                            sb.insert(0,"\n").insert(0,sum).insert(0,"1 yuan coin number=");
+                            money[0] -= sum;
+                            sum = 0;
+                        }
+                        System.out.println(sb);
+                        sum = 0;
+                    }
+                }else if(s.startsWith("q")){
+                    if("q 0".equals(s)){
+                        for(int i = 0;i < goods.length;i++){
+                            System.out.println("A" + (i+1) + " " + price[i] + " " + goods[i]);
+                        }
+                    }else if("q 1".equals(s)){
+                        for(int i = 0;i < money.length;i++){
+                            System.out.println(amount[i] + " yuan coin number=" + money[i]);
+                        }
+                    }else{
+                        System.out.println("E010:Parameter error");
+                    }
+                }
+            }
+        }
+    }
+    
+}
+```
+
+
 
 ## 99.自守数√
 
@@ -2027,6 +2518,38 @@ public class Main{
             max = Math.max(max,num);
         }
         return max;
+    }
+}
+```
+
+## 105.记负均正II√
+
+???
+
+```java
+import java.io.*;
+
+public class Main{
+    public static void main(String[] args) throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String line = null;
+        int negCount = 0,posCount = 0;
+        long posSum = 0;
+        while((line = br.readLine()) != null && line.length() > 0){
+            int n = Integer.parseInt(line);
+            if(n < 0) negCount++;
+            else{
+                posCount++;
+                posSum += n;
+            }
+        }
+        System.out.println(negCount);
+        if(posCount == 0) System.out.println("0.0");
+        else{
+            double ava = (double)posSum /  (double) posCount;
+            System.out.println(String.format("%.1f",ava));
+        }
+        br.close();
     }
 }
 ```
